@@ -30,6 +30,7 @@ Catppuccin Mocha in dark mode, Latte in light mode. The page background is the f
   --text-3:   light-dark(#8c8fa1, #7f849c); /* overlay1: placeholder, disabled */
   --accent:   light-dark(#7287fd, #b4befe); /* lavender */
   --on-accent: #11111b;
+  --on-red:   light-dark(#eff1f5, #11111b);
   --red:      light-dark(#d20f39, #f38ba8);
   --green:    light-dark(#40a02b, #a6e3a1);
   --yellow:   light-dark(#df8e1d, #f9e2af);
@@ -45,7 +46,7 @@ html, body { background: var(--bg); color: var(--text); }
 Why:
 - `--sunken` is crust and `--raised` is surface0 in both flavors. Surface0 is lighter than the panel in Mocha and darker in Latte; either way it differs, which is all contrast needs.
 - Latte `--text-2` is subtext1 because subtext0 fails WCAG AA on crust (3.7:1) and surface0 (3.2:1). On `--raised` surfaces use `--text`.
-- `--on-accent` is Mocha crust in both: no Latte text color passes contrast on Latte lavender.
+- `--on-accent` is Mocha crust in both: no Latte text color passes contrast on Latte lavender. `--on-red` flips because dark text fails on Latte red.
 - Lavender fails contrast as text in Latte, so it's a fill only. Links are `--text` with an underline.
 
 ## Hierarchy with contrast
@@ -56,7 +57,8 @@ Surfaces step outward from the crust: `--bg` → `--panel` → `--raised` → `-
 - **Tables:** no cell borders. Zebra rows or generous row padding; hover `--raised`, selected `--raised-2`. Header row in `--text-2`, weight 600.
 - **Emphasis**, weakest first: text color, then weight (400 → 600), then surface, then accent fill. At most one accent-filled element per view.
 - **States:** hover one surface step up, pressed two. Selected `--raised-2`. Disabled `--text-3`.
-- **Status:** an 8px square of the status color before a label in `--text`. Never colored text, tinted backgrounds or colored borders. Destructive buttons are `--red` with `--on-accent`, only on the confirm step.
+- **Status:** an 8px square of the status color before a label in `--text`. Never colored text, tinted backgrounds or colored borders.
+- **Destructive:** a danger zone's heading is `--red` (the one status color that passes contrast as text in both flavors) and its buttons are `--red` with `--on-red`.
 - **Focus:** `:focus-visible { outline: 2px solid var(--accent); }` — the one permitted line, because keyboard users must find focus.
 
 If you reach for a border, shadow, `backdrop-filter` or colored edge stripe, the surfaces aren't stepping correctly.
