@@ -70,7 +70,13 @@ Surfaces step outward from the crust: `--bg` → `--panel` → `--raised` → `-
   thead th { background: var(--raised); font-weight: 600; }
   ```
   Hover a row's cells `--raised`, selected `--raised-2`. Numbers right-aligned with `tabular-nums`, text left.
-- **Table size:** fit the content. Value columns are as wide as their longest value; the label column takes the rest; stop around 760px unless the data needs more. A few columns stretched across the page read as empty.
+- **Long tables** (more than ~8 rows, or rows wider than the eye can follow): add zebra rows on top of the seams so a row is easy to track across columns. Mocha needs a bigger step than Latte to read as a stripe:
+  ```css
+  --zebra: light-dark(color-mix(in srgb, #ccd0da 50%, #eff1f5), color-mix(in srgb, #313244 75%, #1e1e2e));
+  tbody tr:nth-child(even) > * { background: var(--zebra); }
+  tbody tr:hover > * { background: var(--raised-2); }
+  ```
+- **Table size:** fit the content. Value columns are as wide as their longest value; the label column takes the rest; stop around 760px unless the data needs more. A few columns stretched across the page read as empty. The container follows the table: never leave a narrow table in a wide panel. When the panel has to span (a dashboard row), let the table fill it and give the extra width to the widest text column.
 - **Comparison tables:** values centered, ✓ for yes and – in `--text-3` for no. Group titles are plain bold rows on the background, not filled cells.
 - **Emphasis**, weakest first: text color, then weight (400 → 600), then surface, then accent fill. At most one accent-filled element per view, and never on repeated markers like unread indicators — unread is bold text.
 - **States:** hover one surface step up, pressed two. Selected `--raised-2`. Disabled `--text-3`.
