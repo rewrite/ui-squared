@@ -169,6 +169,7 @@ If a browser is available, render the page and look at it: every interactive sta
 - 4px spacing scale; tighter inside panels, wider between them. Text inside any filled surface keeps at least 8px from its edges (badges 4px 8px).
 - Controls 32–36px tall. Body text 14–15px in apps, 16px on reading pages. Prose max ~70ch.
 - Narrow screens: stack panels, 16px gutters, no horizontal scroll. Wide code blocks and tables scroll inside their own box and keep the gutter. Button groups and segmented controls span the row and wrap when they don't fit, never running past their panel's padding.
+- Repeated rows line up: trailing controls and values (stars, dates, amounts, menus) are end-aligned or sit in a fixed-width column, so a longer value in one row never shifts them.
 - Content never overflows its panel or slides under another one. When a side panel or drawer opens, the content beside it must reflow: give flex children `min-width: 0`, wrap wide tables in `overflow-x: auto`, and hide or wrap columns with container queries on the space the table actually has, not media queries on the viewport.
 
 ## Components
