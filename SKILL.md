@@ -31,10 +31,16 @@ Catppuccin Mocha in dark mode, Latte in light mode. The page background is the f
   --accent:   light-dark(#7287fd, #b4befe); /* lavender */
   --on-accent: #11111b;
   --on-red:   light-dark(#eff1f5, #11111b);
-  --red:      light-dark(#d20f39, #f38ba8);
-  --green:    light-dark(#40a02b, #a6e3a1);
-  --yellow:   light-dark(#df8e1d, #f9e2af);
-  --peach:    light-dark(#fe640b, #fab387);
+  /* status */
+  --red:      light-dark(#d20f39, #f38ba8); /* error, failed, destructive */
+  --yellow:   light-dark(#df8e1d, #f9e2af); /* pending, warning */
+  --green:    light-dark(#40a02b, #a6e3a1); /* success */
+  --blue:     light-dark(#1e66f5, #89b4fa); /* info, in progress */
+  /* categories: labels, event types, chart series */
+  --cat-1:    light-dark(#179299, #94e2d5); /* teal */
+  --cat-2:    light-dark(#8839ef, #cba6f7); /* mauve */
+  --cat-3:    light-dark(#fe640b, #fab387); /* peach */
+  --cat-4:    light-dark(#ea76cb, #f5c2e7); /* pink */
 }
 :root[data-theme="light"] { color-scheme: light; }
 :root[data-theme="dark"]  { color-scheme: dark; }
@@ -48,6 +54,9 @@ Why:
 - Latte `--text-2` is subtext1 because subtext0 fails WCAG AA on crust (3.7:1) and surface0 (3.2:1). On `--raised` surfaces use `--text`.
 - `--on-accent` is Mocha crust in both: no Latte text color passes contrast on Latte lavender. `--on-red` flips because dark text fails on Latte red.
 - Lavender fails contrast as text in Latte, so it's a fill only. Links are `--text` with an underline.
+- Status and category colors are separate sets so meaning never collides: a "health" category in red reads as an error, a "shipped" status in lavender reads as the primary action.
+
+Colors that belong to the content rather than the interface — product swatches, brand logos, user-chosen colors, photos — stay as they are. Define them once as `--content-*` variables.
 
 ## Hierarchy with contrast
 
@@ -55,10 +64,20 @@ Surfaces step outward from the crust: `--bg` → `--panel` → `--raised` → `-
 
 - **Grouping:** related things share a `--panel`. Separate groups with a gap that shows crust, never a divider. `gap: 2px` between filled children gives clean seams.
 - **Tables:** no cell borders. Zebra rows or generous row padding; hover `--raised`, selected `--raised-2`. Header row in `--text-2`, weight 600.
-- **Emphasis**, weakest first: text color, then weight (400 → 600), then surface, then accent fill. At most one accent-filled element per view.
+- **Emphasis**, weakest first: text color, then weight (400 → 600), then surface, then accent fill. At most one accent-filled element per view, and never on repeated markers like unread indicators — unread is bold text.
 - **States:** hover one surface step up, pressed two. Selected `--raised-2`. Disabled `--text-3`.
-- **Status:** an 8px square of the status color before a label in `--text`. Never colored text, tinted backgrounds or colored borders.
+- **Status and category:** an 8px square of the color before a label in `--text`, so color is never the only signal (several Latte colors are too light to stand alone). Never colored text, tinted backgrounds or colored borders. States beyond the four status colors and groups beyond the four categories get a plain label, not another color.
+- **Charts:** one series may use `--accent`; several use `--cat-*` in order, with each series labelled directly. Gridlines `--raised`, axis labels `--text-2`.
 - **Destructive:** a danger zone's heading is `--red` (the one status color that passes contrast as text in both flavors) and its buttons are `--red` with `--on-red`.
+- **Invalid input:** the field's label and the message under it turn `--red`; the field itself keeps its surface. No red outline.
+- **Code:** syntax colors are the exception to the single accent, inside code blocks only. Most Latte syntax colors fail contrast on light backgrounds, so Latte highlights with weight and style instead:
+  ```css
+  --syn-keyword: light-dark(#4c4f69, #cba6f7); /* + font-weight: 600 in Latte */
+  --syn-function: light-dark(#4c4f69, #89b4fa);
+  --syn-string:  light-dark(#5c5f77, #a6e3a1);
+  --syn-number:  light-dark(#4c4f69, #fab387);
+  --syn-comment: light-dark(#5c5f77, #7f849c); /* italic */
+  ```
 - **Focus:** `:focus-visible { outline: 2px solid var(--accent); }` — the one permitted line, because keyboard users must find focus.
 
 If you reach for a border, shadow, `backdrop-filter` or colored edge stripe, the surfaces aren't stepping correctly.
@@ -68,7 +87,7 @@ If you reach for a border, shadow, `backdrop-filter` or colored edge stripe, the
 The global reset misses native widgets and libraries:
 - Restyle checkboxes, radios, selects and range inputs with `appearance: none`. A checkbox is a square `--sunken` box that fills with `--accent` when checked; radios are square too unless the user says otherwise.
 - Tailwind: set `theme.borderRadius` to `{ none: '0', DEFAULT: '0' }`. Component libraries: set their radius token to 0.
-- Avatars and thumbnails are square.
+- Avatars and thumbnails are square. Initials avatars are `--raised` with `--text`, the same for everyone — no per-user colors.
 
 ## Slop
 
@@ -98,7 +117,7 @@ Patterns now recognized on sight as AI-made. Leave every one out unless the user
 - More than one accent color; tinted section backgrounds.
 
 **Type**
-- Eyebrows: small labels above a heading.
+- Eyebrows: small labels above a heading, including "Step 1" above a step name. Show progress once.
 - Uppercase, positive letter-spacing on labels, crushed tracking on headlines. Sentence case everywhere.
 - Reflex fonts (Inter, Geist, Space Grotesk, Manrope, Instrument Serif, Fraunces). Use the system UI stack unless told otherwise.
 - Monospace as UI chrome. It's for code, commands, hashes and IDs.
@@ -113,9 +132,10 @@ Patterns now recognized on sight as AI-made. Leave every one out unless the user
 - Illustrated empty states, cute errors. One plain line plus the action.
 - "Submit", "Click here", "Learn more". Name the action: "Save changes", "Copy command".
 
-**Fake features**
-- `href="#"`, buttons without handlers, ⌘K hints without a shortcut, search that doesn't search.
-- Invented content. If something must be made up (sample data, a usage example), keep it plain and say so in your reply.
+**Fake features and extras**
+- `href="#"`, buttons without handlers, ⌘K hints without a shortcut, search that doesn't search. Don't invent link targets either: if you don't know where something goes, make it plain text and say so in your reply.
+- Invented content. If something must be made up (sample data, a usage example), keep it plain and say so in your reply — not on the page.
+- Features nobody asked for: theme toggles (follow the system), edit dialogs, extra settings. Build what was requested and suggest the rest in your reply.
 
 **Lavender and dark mode are on slop lists too.** They're deliberate here, so avoid the forms that make them read as slop: lavender only as a flat fill on one element, never a glow, gradient or wash; full `--text` for body copy; Latte as polished as Mocha.
 
@@ -132,9 +152,9 @@ If a browser is available, render the page and look at it: every interactive sta
 ## Layout
 
 - Left-align. Center only a lone small element like a login form.
-- 4px spacing scale; tighter inside panels, wider between them.
+- 4px spacing scale; tighter inside panels, wider between them. Text inside any filled surface keeps at least 8px from its edges (badges 4px 8px).
 - Controls 32–36px tall. Body text 14–15px in apps, 16px on reading pages. Prose max ~70ch.
-- Narrow screens: stack panels, 16px gutters, no horizontal scroll.
+- Narrow screens: stack panels, 16px gutters, no horizontal scroll. Wide code blocks and tables scroll inside their own box and keep the gutter.
 - Content never overflows its panel or slides under another one. When a side panel or drawer opens, the content beside it must reflow: give flex children `min-width: 0`, wrap wide tables in `overflow-x: auto`, and hide or wrap columns with container queries on the space the table actually has, not media queries on the viewport.
 
 ## Components

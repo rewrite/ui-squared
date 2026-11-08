@@ -27,7 +27,7 @@ RULES = [
     ("border", r"\bborder(?:-[trblxy])?(?:-\d)?\s(?=.*class)|\bdivide-[xy]\b|\bring-\d\b", "Tailwind border/divide/ring class"),
     ("caps", r"text-transform\s*:\s*uppercase|\buppercase\b(?=[^:]*[\"'])", "forced uppercase"),
     ("tracking", r"letter-spacing\s*:\s*(?!0|normal|-)[^;}\"']+|\btracking-(?:wide|wider|widest)\b", "wide letter-spacing"),
-    ("motion", r"animation[^;{]*infinite|@keyframes\s+(?:pulse|ping|glow|blink|shimmer|float|bounce)|\banimate-(?:pulse|ping|bounce|spin)\b", "looping/attention animation (pulsing dots, glows, blinking)"),
+    ("motion", r"animation[^;{]*infinite|@keyframes\s+(?:pulse|ping|glow|blink|shimmer|float|bounce)|\banimate-(?:pulse|ping|bounce)\b", "looping/attention animation (pulsing dots, glows, blinking)"),
     ("motion", r"transition\s*:\s*all|\btransition-all\b|:hover[^{]*\{[^}]*transform\s*:\s*(?:scale|translate)|hover:(?:scale|-?translate)-", "hover lift/scale or transition: all"),
     ("motion", r"cubic-bezier\([^)]*1\.[1-9]|IntersectionObserver|data-aos|\breveal\b", "springy easing or scroll-reveal"),
     ("font", r"font-family\s*:[^;]*\b(?:Inter|Space Grotesk|Geist|Manrope|Plus Jakarta|Instrument Serif|Fraunces|Poppins|Outfit)\b", "template display font"),
@@ -37,10 +37,10 @@ RULES = [
 
 PHRASES = [
     r"\blive\b(?=\s*</)", r"all systems operational", r"\bnow in (?:beta|public beta|early access)\b", r"\bnow available\b",
-    r"\bintroducing\b", r"\bis here\b", r"\bnew!?\s*</", r">\s*beta\s*<", r">\s*new\s*<", r">\s*popular\s*<", r">\s*pro\s*<",
+    r"\bintroducing\b", r"\bis here\b", r"\bnew!?\s*</", r">\s*beta\s*<", r">\s*new\s*<", r">\s*popular\s*<",
     r"\bai[- ]powered\b", r"\bpowered by ai\b",
     r"trusted by", r"loved by", r"join (?:thousands|\d)", r"\d+[kKmM]\+", r"99\.9+%", r"no credit card required",
-    r"get started\s*(?:—|-|–)?\s*(?:it'?s )?free", r"start for free", r"watch (?:the )?demo", r"book a (?:demo|call)",
+    r"get started\s*(?:—|-|–)?\s*(?:it'?s )?free", r"watch (?:the )?demo", r"book a (?:demo|call)",
     r"made with (?:❤|♥|love)", r"how it works", r"why choose", r"what (?:our )?(?:users|customers) say", r"ready to get started",
     r"\bsupercharge", r"\bseamless(?:ly)?\b", r"\beffortless(?:ly)?\b", r"\bblazing(?:ly)?\b", r"\bnext[- ]gen", r"\bunlock\b",
     r"\belevate\b", r"\bgame[- ]chang", r"\brevolutioni[sz]", r"\bcutting[- ]edge\b", r"\bsay goodbye to\b", r"\bunleash\b",
@@ -48,8 +48,9 @@ PHRASES = [
     r">\s*submit\s*<", r"\bnot just\b", r"\bmore than just\b",
 ]
 
-EMOJI = re.compile("[\U0001F300-\U0001FAFF☀-➿⭐⭕✅❌]")
-HEX = re.compile(r"#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b")
+EMOJI = re.compile("[\U0001F300-\U0001FAFF\u2728\u2705\u274C\u2B50\u26A1\u2764]")
+HEX = re.compile(r"(?<![\w&-])#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})(?![\w-])(?!\s*[{.:>\[])")
+PSEUDO_BLOCK = re.compile(r"([^{}]*::?(?:before|after|marker)[^{}]*)\{([^{}]*)\}")
 CSS_COMMENT = re.compile(r"/\*.*?\*/", re.S)
 
 
@@ -57,15 +58,30 @@ def visible_lines(text):
     return CSS_COMMENT.sub(lambda m: re.sub(r"[^\n]", " ", m.group(0)), text).splitlines()
 
 
+def pseudo_lines(text):
+    """Lines inside ::before/::after rules, where borders draw checkmarks and arrows rather than boxes."""
+    out = set()
+    for m in PSEUDO_BLOCK.finditer(text):
+        a, b = text.count("\n", 0, m.start(2)), text.count("\n", 0, m.end(2))
+        out.update(range(a + 1, b + 2))
+    return out
+
+
 def scan(path):
     hits = []
     lines = visible_lines(path.read_text(errors="replace"))
+    pseudo = pseudo_lines("\n".join(lines))
     for n, line in enumerate(lines, 1):
         low = line.lower()
         for rule, rx, msg in RULES:
             m = re.search(rx, line, re.I)
-            if m:
-                hits.append((n, rule, msg, m.group(0)))
+            if not m:
+                continue
+            if rule == "border" and n in pseudo:
+                continue
+            if rule == "motion" and "infinite" in m.group(0) and re.search(r"spin|rotat|load", line, re.I):
+                continue
+            hits.append((n, rule, msg, m.group(0)))
         for rx in PHRASES:
             m = re.search(rx, low)
             if m:
@@ -73,6 +89,8 @@ def scan(path):
         m = EMOJI.search(line)
         if m:
             hits.append((n, "emoji", "emoji in UI", m.group(0)))
+        if re.search(r"--content-[\w-]*\s*:", line):
+            continue
         for m in HEX.finditer(line):
             h = m.group(1).lower()
             if len(h) == 3:
