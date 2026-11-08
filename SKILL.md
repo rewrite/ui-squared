@@ -63,7 +63,15 @@ Colors that belong to the content rather than the interface — product swatches
 Surfaces step outward from the crust: `--bg` → `--panel` → `--raised` → `--raised-2`. Inputs step inward: `--sunken` on a panel.
 
 - **Grouping:** related things share a `--panel`. Separate groups with a gap that shows crust, never a divider. `gap: 2px` between filled children gives clean seams.
-- **Tables:** no cell borders. Zebra rows or generous row padding; hover `--raised`, selected `--raised-2`. Header row in `--text-2`, weight 600.
+- **Tables:** a grid of filled cells with crust seams instead of borders, so columns separate as clearly as rows:
+  ```css
+  table { border-collapse: separate; border-spacing: 2px; background: var(--bg); }
+  th, td { background: var(--panel); padding: 10px 14px; }
+  thead th { background: var(--raised); font-weight: 600; }
+  ```
+  Hover a row's cells `--raised`, selected `--raised-2`. Numbers right-aligned with `tabular-nums`, text left.
+- **Table size:** fit the content. Value columns are as wide as their longest value; the label column takes the rest; stop around 760px unless the data needs more. A few columns stretched across the page read as empty.
+- **Comparison tables:** values centered, ✓ for yes and – in `--text-3` for no. Group titles are plain bold rows on the background, not filled cells.
 - **Emphasis**, weakest first: text color, then weight (400 → 600), then surface, then accent fill. At most one accent-filled element per view, and never on repeated markers like unread indicators — unread is bold text.
 - **States:** hover one surface step up, pressed two. Selected `--raised-2`. Disabled `--text-3`.
 - **Status and category:** an 8px square of the color before a label in `--text`, so color is never the only signal (several Latte colors are too light to stand alone). Never colored text, tinted backgrounds or colored borders. States beyond the four status colors and groups beyond the four categories get a plain label, not another color.
